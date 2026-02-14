@@ -1,33 +1,5 @@
 spring:
   application:
     name: user-service
-  data:
-    mongodb:
-      uri: mongodb://mongo:mongo@localhost:27017/userdb?authSource=admin
-      database: userdb
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/userdb
-#    username: haider01
-#    password: haider01
-#  jpa:
-#    database: POSTGRESQL
-#    show-sql: true
-#    hibernate:
-#      ddl-auto: update
-#    database-platform: org.hibernate.dialect.PostgreSQLDialect
-#    properties:
-#      hibernate:
-#        jdbc:
-#          time_zone: UTC
-#  h2:
-#    console:
-#      enabled: true
-#  datasource:
-#    url: jdbc:h2:mem:test
-#  jpa:
-#    show-sql: true
-#    hibernate:
-#      ddl-auto: create
-
-server:
-  port: 8082
+  config:
+    import: optional:configserver:http://localhost:8888

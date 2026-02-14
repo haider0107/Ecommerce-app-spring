@@ -11,8 +11,9 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - backend
     restart: unless-stopped
+
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4
@@ -25,7 +26,7 @@ services:
     ports:
       - "5050:80"
     networks:
-      - postgres
+      - backend
     restart: unless-stopped
 
   mongodb:
@@ -39,11 +40,24 @@ services:
     volumes:
       - mongodb:/data/db
     networks:
-      - postgres
+      - backend
+    restart: unless-stopped
+
+  rabbitmq:
+    container_name: rabbitmq_container
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - backend
     restart: unless-stopped
 
 networks:
-  postgres:
+  backend:
     driver: bridge
 
 volumes:
