@@ -1,5 +1,6 @@
 package com.ecommerce.app.product.repository;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import com.ecommerce.app.product.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +16,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM products p WHERE p.active = true AND p.stockQuantity > 0 AND LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Product> searchProducts(@Param("keyword") String keyword);
+
+    Optional<Product> findByIdAndActiveTrue(Long aLong);
 }
