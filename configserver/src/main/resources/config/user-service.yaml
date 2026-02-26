@@ -1,8 +1,18 @@
 spring:
-  data:
-    mongodb:
-      uri: ${MONGO_URI}
-      database: userdb
+  datasource:
+    url: jdbc:postgresql://localhost:5432/userdb
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASS}
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
   rabbitmq:
     host: localhost
     port: 5672

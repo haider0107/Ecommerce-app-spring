@@ -24,7 +24,16 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable String id){
-        return userService.fetchUser(id)
+
+        Long userId;
+
+        try {
+            userId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return userService.fetchUser(userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -38,7 +47,15 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<String> updateUser(@PathVariable String id,
                                              @RequestBody UserRequest updateUserRequest){
-        boolean updated = userService.updateUser(id, updateUserRequest);
+        Long userId;
+
+        try {
+            userId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        boolean updated = userService.updateUser(userId, updateUserRequest);
         if (updated)
             return ResponseEntity.ok("User updated successfully");
         return ResponseEntity.notFound().build();

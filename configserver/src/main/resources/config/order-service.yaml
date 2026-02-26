@@ -1,3 +1,6 @@
+app:
+  message: Hello from config server
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/order
@@ -31,6 +34,14 @@ spring:
 
 server:
   port: 8083
+
+rabbitmq:
+  exchange:
+    name: order.exchange
+  queue:
+    name: order.queue
+  routing:
+    key: order.tracking
 
 eureka:
   client:
