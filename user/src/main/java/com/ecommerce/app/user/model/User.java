@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
 @Table(
     name = "users_table",
     uniqueConstraints = {
-            @UniqueConstraint(columnNames = "email")
+            @UniqueConstraint(columnNames = "email"),
+            @UniqueConstraint(columnNames = "keycloakId")
     }
 )
 @NoArgsConstructor
@@ -22,6 +23,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String keycloakId;
     private String firstName;
     private String lastName;
 

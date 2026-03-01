@@ -32,6 +32,14 @@
 #            - Path=/eureka/**
 
 # http://localhost:8080/api/users -> http://localhost:8082/api/users
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8443/realms/ecom-app
+
 server:
   port: 8080
 

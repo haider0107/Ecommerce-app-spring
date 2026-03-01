@@ -18,6 +18,11 @@ spring:
     port: 5672
     username: guest
     password: guest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8443/realms/ecom-app
 
 server:
   port: 8082
@@ -39,3 +44,13 @@ management:
   tracing:
     sampling:
       probability: 1.0
+
+# KEYCLOAK
+#keycloak:
+#  admin:
+#    username:
+#    password:
+#    server-url: http://localhost:8443
+#    realm: ecom-app
+#    client-id: admin-cli
+#    client-uid:

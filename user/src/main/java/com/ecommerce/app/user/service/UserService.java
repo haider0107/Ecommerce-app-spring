@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-//    private List<User> userList = new ArrayList<>();
-//    private Long nextId = 1L;
+//    private final KeyCloakAdminService keyCloakAdminService;
 
     public List<UserResponse> fetchAllUsers(){
         return userRepository.findAll().stream()
@@ -26,11 +25,38 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public void addUser(UserRequest userRequest){
-//        user.setId(nextId++);
-        User user = new User();
-        updateUserFromRequest(user, userRequest);
-        userRepository.save(user);
+//    public void addUser(UserRequest userRequest){
+//        String token = keyCloakAdminService.getAdminAccessToken();
+//        String keycloakUserId =
+//                keyCloakAdminService.createUser(token, userRequest);
+//
+//        User user = new User();
+//        updateUserFromRequest(user, userRequest);
+//        user.setKeycloakId(keycloakUserId);
+//
+//        keyCloakAdminService.assignRealmRoleToUser(userRequest.getUsername(),
+//                "USER", keycloakUserId);
+//        userRepository.save(user);
+//    }
+
+    public UserResponse findOrCreateUser(String keycloakId,
+                                         String email,
+                                         String firstName,
+                                         String lastName) {
+
+        User user = userRepository.findByKeycloakId(keycloakId)
+                .orElseGet(() -> {
+
+                    User newUser = new User();
+                    newUser.setKeycloakId(keycloakId);
+                    newUser.setEmail(email);
+                    newUser.setFirstName(firstName);
+                    newUser.setLastName(lastName);
+
+                    return userRepository.save(newUser);
+                });
+
+        return mapToUserResponse(user);
     }
 
     public Optional<UserResponse> fetchUser(Long id) {
@@ -67,6 +93,7 @@ public class UserService {
         UserResponse response = new UserResponse();
         response.setId(String.valueOf(user.getId()));
         response.setFirstName(user.getFirstName());
+        response.setKeyCloakId(user.getKeycloakId());
         response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
         response.setPhone(user.getPhone());
