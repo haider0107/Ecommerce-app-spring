@@ -5,6 +5,8 @@ import com.ecommerce.app.order.clients.UserServiceClient;
 import com.ecommerce.app.order.dto.CartItemRequest;
 import com.ecommerce.app.order.dto.ProductResponse;
 import com.ecommerce.app.order.dto.UserResponse;
+import com.ecommerce.app.order.exception.BadRequestException;
+import com.ecommerce.app.order.exception.ResourceNotFoundException;
 import com.ecommerce.app.order.model.CartItem;
 import com.ecommerce.app.order.repository.CartItemRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -24,49 +26,67 @@ public class CartService {
     private final ProductServiceClient productServiceClient;
     private final UserServiceClient userServiceClient;
 
-//    @CircuitBreaker(name = "productService", fallbackMethod = "addToCartFallback")
+    //    @CircuitBreaker(name = "productService", fallbackMethod = "addToCartFallback")
     @Retry(name = "retryBreaker", fallbackMethod = "addToCartFallback")
-    public boolean addToCart(String userId, CartItemRequest request) {
-        // Look for product
-        ProductResponse productResponse = productServiceClient.getProductDetails(request.getProductId());
-        if (productResponse == null || productResponse.getStockQuantity() < request.getQuantity())
-            return false;
+    public CartItem addToCart(String userId, CartItemRequest request) {
 
-        UserResponse userResponse = userServiceClient.getUserDetails(userId);
+        ProductResponse productResponse =
+                productServiceClient.getProductDetails(request.getProductId());
+
+        if (productResponse == null)
+            throw new ResourceNotFoundException("Product not found");
+
+        if (productResponse.getStockQuantity() < request.getQuantity())
+            throw new BadRequestException("Insufficient stock");
+
+        UserResponse userResponse =
+                userServiceClient.getUserDetails(userId);
+
         if (userResponse == null)
-            return false;
+            throw new ResourceNotFoundException("User not found");
 
-        CartItem existingCartItem = cartItemRepository.findByUserIdAndProductId(userId, request.getProductId());
+        CartItem existingCartItem =
+                cartItemRepository.findByUserIdAndProductId(
+                        userId, request.getProductId());
+
         if (existingCartItem != null) {
-            // Update the quantity
-            existingCartItem.setQuantity(existingCartItem.getQuantity() + request.getQuantity());
+
+            existingCartItem.setQuantity(
+                    existingCartItem.getQuantity() + request.getQuantity());
+
             existingCartItem.setPrice(BigDecimal.valueOf(1000.00));
-            cartItemRepository.save(existingCartItem);
+
+            return cartItemRepository.save(existingCartItem);
+
         } else {
-            // Create new cart item
+
             CartItem cartItem = new CartItem();
             cartItem.setUserId(userId);
             cartItem.setProductId(request.getProductId());
             cartItem.setQuantity(request.getQuantity());
             cartItem.setPrice(BigDecimal.valueOf(1000.00));
-            cartItemRepository.save(cartItem);
+
+            return cartItemRepository.save(cartItem);
         }
-        return true;
     }
 
-    public boolean addToCartFallback(String userId, CartItemRequest request, Exception exception) {
-        System.out.println("Fallback method called");
-        return false;
+    public CartItem addToCartFallback(
+            String userId,
+            CartItemRequest request,
+            Exception exception) {
+
+        throw new RuntimeException("Product service is currently unavailable");
     }
 
-    public boolean deleteItemFromCart(String userId, String productId) {
-        CartItem cartItem = cartItemRepository.findByUserIdAndProductId(userId, productId);
+    public void deleteItemFromCart(String userId, String productId) {
 
-        if (cartItem != null){
-            cartItemRepository.delete(cartItem);
-            return true;
-        }
-        return false;
+        CartItem cartItem =
+                cartItemRepository.findByUserIdAndProductId(userId, productId);
+
+        if (cartItem == null)
+            throw new ResourceNotFoundException("Cart item not found");
+
+        cartItemRepository.delete(cartItem);
     }
 
     public List<CartItem> getCart(String userId) {

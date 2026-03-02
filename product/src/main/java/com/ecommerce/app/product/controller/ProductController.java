@@ -1,13 +1,16 @@
 package com.ecommerce.app.product.controller;
 
+import com.ecommerce.app.product.dto.ApiResponse;
 import com.ecommerce.app.product.dto.ProductRequest;
 import com.ecommerce.app.product.dto.ProductResponse;
 import com.ecommerce.app.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -26,43 +29,106 @@ public class ProductController {
         return ResponseEntity.ok("Product Service is OK");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest productRequest) {
-        return new ResponseEntity<ProductResponse>(productService.createProduct(productRequest),
-                HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
+            @RequestBody ProductRequest productRequest) {
+
+        ProductResponse response = productService.createProduct(productRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.<ProductResponse>builder()
+                        .success(true)
+                        .status(201)
+                        .message("Product created successfully")
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getProducts() {
+
+        List<ProductResponse> products = productService.getAllProducts();
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<ProductResponse>>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Products fetched successfully")
+                        .data(products)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(
-            @PathVariable String id){
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(
+            @PathVariable String id) {
+
+        ProductResponse product = productService.getProductById(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ProductResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Product fetched successfully")
+                        .data(product)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long id,
             @RequestBody ProductRequest productRequest) {
-        return productService.updateProduct(id, productRequest)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+
+        ProductResponse updatedProduct =
+                productService.updateProduct(id, productRequest);
+
+        return ResponseEntity.ok(
+                ApiResponse.<ProductResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Product updated successfully")
+                        .data(updatedProduct)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        boolean deleted = productService.deleteProduct(id);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    public ResponseEntity<ApiResponse<Object>> deleteProduct(@PathVariable Long id) {
 
+        productService.deleteProduct(id);
+
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .success(true)
+                        .status(200)
+                        .message("Product deleted successfully")
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String keyword) {
-        return ResponseEntity.ok(productService.searchProducts(keyword));
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(
+            @RequestParam String keyword) {
+
+        List<ProductResponse> results = productService.searchProducts(keyword);
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<ProductResponse>>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Search completed successfully")
+                        .data(results)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 }

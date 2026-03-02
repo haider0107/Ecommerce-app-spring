@@ -1,5 +1,6 @@
 package com.ecommerce.app.order.controller;
 
+import com.ecommerce.app.order.dto.ApiResponse;
 import com.ecommerce.app.order.dto.CartItemRequest;
 import com.ecommerce.app.order.model.CartItem;
 import com.ecommerce.app.order.service.CartService;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -18,28 +20,52 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping
-    public ResponseEntity<String> addToCart(
+    public ResponseEntity<ApiResponse<CartItem>> addToCart(
             @RequestHeader("X-User-ID") String userId,
             @RequestBody CartItemRequest request) {
-        if (!cartService.addToCart(userId, request)) {
-            return ResponseEntity.badRequest().body("Not able to complete the request");
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+
+        CartItem cartItem = cartService.addToCart(userId, request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.<CartItem>builder()
+                        .success(true)
+                        .status(201)
+                        .message("Item added to cart")
+                        .data(cartItem)
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
     @DeleteMapping("/items/{productId}")
-    public ResponseEntity<Void> removeFromCart(
+    public ResponseEntity<ApiResponse<Void>> removeFromCart(
             @RequestHeader("X-User-ID") String userId,
             @PathVariable String productId) {
-        boolean deleted = cartService.deleteItemFromCart(userId, productId);
-        return deleted ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+
+        cartService.deleteItemFromCart(userId, productId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Item removed from cart")
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
     @GetMapping
-    public ResponseEntity<List<CartItem>> getCart(
+    public ResponseEntity<ApiResponse<List<CartItem>>> getCart(
             @RequestHeader("X-User-ID") String userId) {
-        return ResponseEntity.ok(cartService.getCart(userId));
+
+        List<CartItem> cartItems = cartService.getCart(userId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<CartItem>>builder()
+                        .success(true)
+                        .status(200)
+                        .message("Cart fetched successfully")
+                        .data(cartItems)
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
 }

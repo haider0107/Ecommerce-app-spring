@@ -2,6 +2,7 @@ package com.ecommerce.app.product.service;
 
 import com.ecommerce.app.product.dto.ProductRequest;
 import com.ecommerce.app.product.dto.ProductResponse;
+import com.ecommerce.app.product.exception.ResourceNotFoundException;
 import com.ecommerce.app.product.model.Product;
 import com.ecommerce.app.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +47,17 @@ public class ProductService {
         product.setStockQuantity(productRequest.getStockQuantity());
     }
 
-    public Optional<ProductResponse> updateProduct(Long id, ProductRequest productRequest) {
-        return productRepository.findById(id)
-                .map(existingProduct -> {
-                    updateProductFromRequest(existingProduct, productRequest);
-                    Product savedProduct = productRepository.save(existingProduct);
-                    return mapToProductResponse(savedProduct);
-                });
+    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found with id: " + id));
+
+        updateProductFromRequest(product, productRequest);
+
+        Product savedProduct = productRepository.save(product);
+
+        return mapToProductResponse(savedProduct);
     }
 
     public List<ProductResponse> getAllProducts() {
@@ -61,13 +66,14 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public boolean deleteProduct(Long id) {
-        return productRepository.findById(id)
-                .map(product -> {
-                    product.setActive(false);
-                    productRepository.save(product);
-                    return true;
-                }).orElse(false);
+    public void deleteProduct(Long id) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found with id: " + id));
+
+        product.setActive(false);
+        productRepository.save(product);
     }
 
     public List<ProductResponse> searchProducts(String keyword) {
@@ -76,8 +82,13 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<ProductResponse> getProductById(String id) {
-        return productRepository.findByIdAndActiveTrue(Long.valueOf(id))
-                .map(this::mapToProductResponse);
+    public ProductResponse getProductById(String id) {
+
+        Product product = productRepository
+                .findByIdAndActiveTrue(Long.valueOf(id))
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found with id: " + id));
+
+        return mapToProductResponse(product);
     }
 }

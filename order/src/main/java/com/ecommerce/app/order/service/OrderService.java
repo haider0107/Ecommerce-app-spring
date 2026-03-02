@@ -2,6 +2,7 @@ package com.ecommerce.app.order.service;
 
 import com.ecommerce.app.order.dto.OrderItemDTO;
 import com.ecommerce.app.order.dto.OrderResponse;
+import com.ecommerce.app.order.exception.BadRequestException;
 import com.ecommerce.app.order.model.CartItem;
 import com.ecommerce.app.order.model.Order;
 import com.ecommerce.app.order.model.OrderItem;
@@ -20,26 +21,19 @@ public class OrderService {
     private final CartService cartService;
     private final OrderRepository orderRepository;
 
-    public Optional<OrderResponse> createOrder(String userId) {
-        // Validate for cart items
+    public OrderResponse createOrder(String userId) {
+
         List<CartItem> cartItems = cartService.getCart(userId);
+
         if (cartItems.isEmpty()) {
-            return Optional.empty();
+            throw new BadRequestException("Cart is empty. Cannot create order.");
         }
-//        // Validate for user
-//
-//        Optional<User> userOptional = userRepository.findById(Long.valueOf(userId));
-//        if (userOptional.isEmpty()) {
-//            return Optional.empty();
-//        }
-//        User user = userOptional.get();
 
         // Calculate total price
         BigDecimal totalPrice = cartItems.stream()
                 .map(CartItem::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Create order
         Order order = new Order();
         order.setUserId(userId);
         order.setStatus(OrderStatus.CONFIRMED);
@@ -56,12 +50,13 @@ public class OrderService {
                 .toList();
 
         order.setItems(orderItems);
+
         Order savedOrder = orderRepository.save(order);
 
-        // Clear the cart
+        // Clear cart after order creation
         cartService.clearCart(userId);
 
-        return Optional.of(mapToOrderResponse(savedOrder));
+        return mapToOrderResponse(savedOrder);
     }
 
     private OrderResponse mapToOrderResponse(Order order) {

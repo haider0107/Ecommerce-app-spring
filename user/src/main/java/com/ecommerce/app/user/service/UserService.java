@@ -64,13 +64,31 @@ public class UserService {
                 .map(this::mapToUserResponse);
     }
 
-    public boolean updateUser(Long id, UserRequest updatedUserRequest) {
+//    public boolean updateUser(Long id, UserRequest updatedUserRequest) {
+//        return userRepository.findById(id)
+//                .map(existingUser -> {
+//                    updateUserFromRequest(existingUser, updatedUserRequest);
+//                    userRepository.save(existingUser);
+//                    return true;
+//                }).orElse(false);
+//    }
+
+    public Optional<UserResponse> updateUserAndReturn(
+            Long id,
+            UserRequest updatedUserRequest) {
+
         return userRepository.findById(id)
                 .map(existingUser -> {
+
+                    // update fields
                     updateUserFromRequest(existingUser, updatedUserRequest);
-                    userRepository.save(existingUser);
-                    return true;
-                }).orElse(false);
+
+                    // save updated entity
+                    User savedUser = userRepository.save(existingUser);
+
+                    // convert to DTO
+                    return mapToUserResponse(savedUser);
+                });
     }
 
     private void updateUserFromRequest(User user, UserRequest userRequest) {
