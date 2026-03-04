@@ -1,0 +1,56 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notification
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASS}
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  cloud:
+    function:
+      definition: orderCreated
+    stream:
+      function:
+        definition: orderCreated
+      bindings:
+        orderCreated-in-0:
+          destination: order.exchange
+          group: notification-group
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: localhost:9092
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+server:
+  port: 8084

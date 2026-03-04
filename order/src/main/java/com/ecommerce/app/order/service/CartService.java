@@ -2,6 +2,7 @@ package com.ecommerce.app.order.service;
 
 import com.ecommerce.app.order.clients.ProductServiceClient;
 import com.ecommerce.app.order.clients.UserServiceClient;
+import com.ecommerce.app.order.dto.ApiResponse;
 import com.ecommerce.app.order.dto.CartItemRequest;
 import com.ecommerce.app.order.dto.ProductResponse;
 import com.ecommerce.app.order.dto.UserResponse;
@@ -30,8 +31,13 @@ public class CartService {
     @Retry(name = "retryBreaker", fallbackMethod = "addToCartFallback")
     public CartItem addToCart(String userId, CartItemRequest request) {
 
-        ProductResponse productResponse =
+//        ProductResponse productResponse =
+//                productServiceClient.getProductDetails(request.getProductId());
+
+        ApiResponse<ProductResponse> response =
                 productServiceClient.getProductDetails(request.getProductId());
+
+        ProductResponse productResponse = response.getData();
 
         if (productResponse == null)
             throw new ResourceNotFoundException("Product not found");

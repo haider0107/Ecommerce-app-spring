@@ -52,6 +52,12 @@ public class GatewayConfig {
 //                        .filters(f -> f.rewritePath("/(?<segment>.*)",
 //                                "/api/${segment}"))
                         .uri("lb://ORDER-SERVICE"))
+                .route("notification-service", r -> r
+                        .path("/api/notifications/**")
+                        .uri("lb://NOTIFICATION-SERVICE"))
+                .route("notification-ws", r -> r
+                        .path("/ws/**")
+                        .uri("lb:ws://NOTIFICATION-SERVICE"))
                 .route("eureka-server", r -> r
                         .path("/eureka/main")
                         .filters(f -> f.rewritePath("/eureka/main", "/"))
