@@ -10,12 +10,16 @@ import {
   Menu,
   MenuItem,
   Divider,
+  Badge,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useState, MouseEvent } from "react";
+import { useState, MouseEvent, useMemo } from "react";
+import { useGetCartQuery } from "@/services/cartService";
+import useNotificationSocket from "@/hooks/useNotificationSocket";
+import NotificationBell from "./notification/NotificationBell";
 
 export default function Header() {
   const { isAuthenticated, login, logout, isLoading, keycloak } = useAuth();
@@ -31,6 +35,19 @@ export default function Header() {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const userId = keycloak?.tokenParsed?.sub;
+
+  useNotificationSocket(userId ?? "");
+
+  const { data } = useGetCartQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  const cartCount = useMemo(
+    () => data?.data?.reduce((total, item) => total + item.quantity, 0) ?? 0,
+    [data],
+  );
 
   if (isLoading) return null;
 
@@ -51,9 +68,19 @@ export default function Header() {
           </Button>
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
+            <div>
+              <NotificationBell />
+            </div>
+
             {/* Cart Icon */}
             <IconButton color="inherit" onClick={() => router.push("/cart")}>
-              <ShoppingCartIcon />
+              <Badge
+                badgeContent={cartCount}
+                color="error"
+                invisible={cartCount === 0}
+              >
+                <ShoppingCartIcon />
+              </Badge>
             </IconButton>
 
             {/* User Icon */}

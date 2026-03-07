@@ -1,8 +1,10 @@
 package com.ecommerce.app.order.service;
 
+import com.ecommerce.app.order.clients.UserServiceClient;
 import com.ecommerce.app.order.dto.OrderCreatedEvent;
 import com.ecommerce.app.order.dto.OrderItemDTO;
 import com.ecommerce.app.order.dto.OrderResponse;
+import com.ecommerce.app.order.dto.UserResponse;
 import com.ecommerce.app.order.exception.BadRequestException;
 import com.ecommerce.app.order.model.CartItem;
 import com.ecommerce.app.order.model.Order;
@@ -24,10 +26,11 @@ public class OrderService {
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final StreamBridge   streamBridge;
+    private final UserServiceClient userServiceClient;
 
-    public OrderResponse createOrder(String userId) {
+    public OrderResponse createOrder(String keycloakId) {
 
-        List<CartItem> cartItems = cartService.getCart(userId);
+        List<CartItem> cartItems = cartService.getCart(keycloakId);
 
         if (cartItems.isEmpty()) {
             throw new BadRequestException("Cart is empty. Cannot create order.");
@@ -38,8 +41,13 @@ public class OrderService {
                 .map(CartItem::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        UserResponse userResponse = userServiceClient.getCurrentUser().getData();
+
+        String userId = userResponse.getId();
+
         Order order = new Order();
         order.setUserId(userId);
+        order.setKeycloakId(keycloakId);
         order.setStatus(OrderStatus.CONFIRMED);
         order.setTotalAmount(totalPrice);
 
@@ -58,12 +66,12 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // Clear cart after order creation
-        cartService.clearCart(userId);
+        cartService.clearCart(keycloakId);
 
         // Publish order created event
         OrderCreatedEvent event = new OrderCreatedEvent(
                 savedOrder.getId(),
-                savedOrder.getUserId(),
+                savedOrder.getKeycloakId(),
                 savedOrder.getStatus(),
                 mapToOrderItemDTOs(savedOrder.getItems()),
                 savedOrder.getTotalAmount(),

@@ -3,19 +3,37 @@
 import { Container, Typography, Grid } from "@mui/material";
 import { useGetProductsQuery } from "@/services/productService";
 import ProductCard from "./ProductCard";
+import { useAddToCartMutation } from "@/services/cartService";
+import toast from "react-hot-toast";
+import { getApiErrorMessage } from "@/utils/apiError";
+import { useState } from "react";
 
 export default function ProductsContent() {
   const { data, isLoading, error } = useGetProductsQuery();
+  const [addToCart] = useAddToCartMutation();
+
+  const [loadingProductId, setLoadingProductId] = useState<number | null>(null);
 
   if (isLoading) return <p>Loading products...</p>;
   if (error) return <p>Error loading products</p>;
 
   const products = data?.data ?? [];
 
-  const handleAddToCart = (productId: number) => {
-    console.log("Add to cart", productId);
+  const handleAddToCart = async (productId: number) => {
+    try {
+      setLoadingProductId(productId);
 
-    // later call cart api
+      const response = await addToCart({
+        productId,
+        quantity: 1,
+      }).unwrap();
+
+      toast.success(response.message || "Added to cart");
+    } catch (error: unknown) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setLoadingProductId(null);
+    }
   };
 
   return (
@@ -27,7 +45,11 @@ export default function ProductsContent() {
       <Grid container spacing={3}>
         {products.map((product) => (
           <Grid key={product.id}>
-            <ProductCard product={product} onAddToCart={handleAddToCart} />
+            <ProductCard
+              product={product}
+              onAddToCart={handleAddToCart}
+              addToCartLoading={loadingProductId === product.id}
+            />
           </Grid>
         ))}
       </Grid>

@@ -7,6 +7,8 @@ import com.ecommerce.app.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +24,10 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
-            @RequestHeader("X-User-ID") String userId) {
+            @AuthenticationPrincipal Jwt jwt) {
 
-        OrderResponse orderResponse = orderService.createOrder(userId);
+        String keycloakId = jwt.getSubject();
+        OrderResponse orderResponse = orderService.createOrder(keycloakId);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<OrderResponse>builder()

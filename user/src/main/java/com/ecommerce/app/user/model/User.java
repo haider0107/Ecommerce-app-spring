@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "users_table",
+    indexes = {
+      @Index(name="idx_keycloak_id",columnList = "keycloakId")
+    },
     uniqueConstraints = {
             @UniqueConstraint(columnNames = "email"),
             @UniqueConstraint(columnNames = "keycloakId")

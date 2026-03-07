@@ -29,7 +29,7 @@ public class CartService {
 
     //    @CircuitBreaker(name = "productService", fallbackMethod = "addToCartFallback")
     @Retry(name = "retryBreaker", fallbackMethod = "addToCartFallback")
-    public CartItem addToCart(String userId, CartItemRequest request) {
+    public CartItem addToCart(String keycloakId, CartItemRequest request) {
 
 //        ProductResponse productResponse =
 //                productServiceClient.getProductDetails(request.getProductId());
@@ -46,21 +46,26 @@ public class CartService {
             throw new BadRequestException("Insufficient stock");
 
         UserResponse userResponse =
-                userServiceClient.getUserDetails(userId);
+                userServiceClient.getCurrentUser().getData();
 
         if (userResponse == null)
             throw new ResourceNotFoundException("User not found");
 
+        String userId = userResponse.getId();
+
         CartItem existingCartItem =
-                cartItemRepository.findByUserIdAndProductId(
-                        userId, request.getProductId());
+                cartItemRepository.findByKeycloakIdAndProductId(
+                        keycloakId, request.getProductId());
 
         if (existingCartItem != null) {
 
             existingCartItem.setQuantity(
                     existingCartItem.getQuantity() + request.getQuantity());
 
-            existingCartItem.setPrice(BigDecimal.valueOf(1000.00));
+//            existingCartItem.setPrice(BigDecimal.valueOf(1000.00));
+            if(existingCartItem.getUserId() == null){
+                existingCartItem.setUserId(userId);
+            }
 
             return cartItemRepository.save(existingCartItem);
 
@@ -68,26 +73,27 @@ public class CartService {
 
             CartItem cartItem = new CartItem();
             cartItem.setUserId(userId);
+            cartItem.setKeycloakId(keycloakId);
             cartItem.setProductId(request.getProductId());
             cartItem.setQuantity(request.getQuantity());
-            cartItem.setPrice(BigDecimal.valueOf(1000.00));
+            cartItem.setPrice(productResponse.getPrice());
 
             return cartItemRepository.save(cartItem);
         }
     }
 
     public CartItem addToCartFallback(
-            String userId,
+            String keycloakId,
             CartItemRequest request,
             Exception exception) {
 
         throw new RuntimeException("Product service is currently unavailable");
     }
 
-    public void deleteItemFromCart(String userId, String productId) {
+    public void deleteItemFromCart(String keycloakId, String productId) {
 
         CartItem cartItem =
-                cartItemRepository.findByUserIdAndProductId(userId, productId);
+                cartItemRepository.findByKeycloakIdAndProductId(keycloakId, productId);
 
         if (cartItem == null)
             throw new ResourceNotFoundException("Cart item not found");
@@ -95,11 +101,11 @@ public class CartService {
         cartItemRepository.delete(cartItem);
     }
 
-    public List<CartItem> getCart(String userId) {
-        return cartItemRepository.findByUserId(userId);
+    public List<CartItem> getCart(String keycloakId) {
+        return cartItemRepository.findByKeycloakId(keycloakId);
     }
 
-    public void clearCart(String userId) {
-        cartItemRepository.deleteByUserId(userId);
+    public void clearCart(String keycloakId) {
+        cartItemRepository.deleteByKeycloakId(keycloakId);
     }
 }

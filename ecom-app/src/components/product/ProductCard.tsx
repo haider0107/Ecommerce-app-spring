@@ -4,9 +4,11 @@ import { Card, CardContent, Typography, Button } from "@mui/material";
 export default function ProductCard({
   product,
   onAddToCart,
+  addToCartLoading,
 }: {
   product: Product;
   onAddToCart: (id: number) => void;
+  addToCartLoading: boolean;
 }) {
   return (
     <Card sx={{ width: 300 }}>
@@ -24,6 +26,8 @@ export default function ProductCard({
         </Typography>
 
         <Button
+          disabled={addToCartLoading || product.stockQuantity === 0}
+          loading={addToCartLoading}
           fullWidth
           variant="contained"
           sx={{ mt: 2 }}

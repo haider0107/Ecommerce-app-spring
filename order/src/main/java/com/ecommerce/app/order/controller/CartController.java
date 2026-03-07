@@ -7,6 +7,8 @@ import com.ecommerce.app.order.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,10 +23,12 @@ public class CartController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<CartItem>> addToCart(
-            @RequestHeader("X-User-ID") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody CartItemRequest request) {
 
-        CartItem cartItem = cartService.addToCart(userId, request);
+        String keycloakId = jwt.getSubject();
+
+        CartItem cartItem = cartService.addToCart(keycloakId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<CartItem>builder()
@@ -38,10 +42,11 @@ public class CartController {
 
     @DeleteMapping("/items/{productId}")
     public ResponseEntity<ApiResponse<Void>> removeFromCart(
-            @RequestHeader("X-User-ID") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String productId) {
 
-        cartService.deleteItemFromCart(userId, productId);
+        String keycloakId = jwt.getSubject();
+        cartService.deleteItemFromCart(keycloakId, productId);
 
         return ResponseEntity.ok(
                 ApiResponse.<Void>builder()
@@ -54,9 +59,10 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CartItem>>> getCart(
-            @RequestHeader("X-User-ID") String userId) {
+            @AuthenticationPrincipal Jwt jwt) {
 
-        List<CartItem> cartItems = cartService.getCart(userId);
+        String keycloakId = jwt.getSubject();
+        List<CartItem> cartItems = cartService.getCart(keycloakId);
 
         return ResponseEntity.ok(
                 ApiResponse.<List<CartItem>>builder()

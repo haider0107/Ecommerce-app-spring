@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "orders")
+@Table(indexes = {
+        @Index(name = "idx_cart_keycloak_id", columnList = "keycloakId")
+})
 @Data
 @NoArgsConstructor
 public class Order {
@@ -20,6 +23,7 @@ public class Order {
     private Long id;
 
     private String userId;
+    private String keycloakId;
 
     private BigDecimal totalAmount;
 

@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_cart_keycloak_id", columnList = "keycloakId")
+})
 @Data
 @NoArgsConstructor
 public class CartItem {
@@ -17,6 +20,7 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String userId;
+    private String keycloakId;
     private String productId;
 
     private Integer quantity;

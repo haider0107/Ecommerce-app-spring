@@ -14,17 +14,21 @@
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
     "@reduxjs/toolkit": "^2.11.2",
+    "@stomp/stompjs": "^7.3.0",
     "axios": "^1.13.6",
     "keycloak-js": "^26.2.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-redux": "^9.2.0"
+    "react-hot-toast": "^2.6.0",
+    "react-redux": "^9.2.0",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.19.37",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sockjs-client": "^1.5.4",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "typescript": "^5"
