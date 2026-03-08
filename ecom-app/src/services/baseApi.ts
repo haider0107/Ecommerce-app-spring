@@ -22,7 +22,7 @@ import { getKeycloak } from "@/lib/keycloak";
 
 export const baseApi = createApi({
   reducerPath: "api",
-  tagTypes: ["Cart", "Notifications"],
+  tagTypes: ["Cart", "Notifications", "Products"],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL,
     prepareHeaders: async (headers) => {

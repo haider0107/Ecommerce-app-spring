@@ -3,10 +3,7 @@ package com.ecommerce.app.notification.controller;
 import com.ecommerce.app.notification.model.Notification;
 import com.ecommerce.app.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,5 +17,17 @@ public class NotificationController {
     @GetMapping("/{userId}")
     public List<Notification> getNotifications(@PathVariable String userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    // Mark single notification as read
+    @PatchMapping("/{id}/read")
+    public void markNotificationRead(@PathVariable Long id) {
+        repository.markNotificationAsRead(id);
+    }
+
+    // Mark all notifications as read
+    @PatchMapping("/read-all/{userId}")
+    public void markAllNotificationsRead(@PathVariable String userId) {
+        repository.markAllNotificationsAsRead(userId);
     }
 }

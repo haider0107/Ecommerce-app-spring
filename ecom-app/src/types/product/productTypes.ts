@@ -4,7 +4,7 @@ export interface Product {
   description: string;
   price: number;
   stockQuantity: number;
-  imageUrl: number;
+  imageUrl: string;
 }
 
 export interface ApiResponse<T> {

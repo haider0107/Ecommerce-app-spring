@@ -27,7 +27,7 @@ public class OrderEventConsumer {
             Notification notification = Notification.builder()
                     .orderId(event.getOrderId())
                     .userId(event.getUserId())
-                    .message("Order created successfully")
+                    .message("Order created successfully for Order ID " + event.getOrderId())
                     .read(false)
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -38,6 +38,8 @@ public class OrderEventConsumer {
                     "/topic/notifications/" + event.getUserId(),
                     notification
             );
+
+            System.out.println(notification);
 
             log.info("Notification created for user {}", event.getUserId());
         };

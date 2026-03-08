@@ -1,11 +1,10 @@
 package com.ecommerce.app.order.service;
 
+import com.ecommerce.app.order.clients.ProductServiceClient;
 import com.ecommerce.app.order.clients.UserServiceClient;
-import com.ecommerce.app.order.dto.OrderCreatedEvent;
-import com.ecommerce.app.order.dto.OrderItemDTO;
-import com.ecommerce.app.order.dto.OrderResponse;
-import com.ecommerce.app.order.dto.UserResponse;
+import com.ecommerce.app.order.dto.*;
 import com.ecommerce.app.order.exception.BadRequestException;
+import com.ecommerce.app.order.exception.ResourceNotFoundException;
 import com.ecommerce.app.order.model.CartItem;
 import com.ecommerce.app.order.model.Order;
 import com.ecommerce.app.order.model.OrderItem;
@@ -27,6 +26,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final StreamBridge   streamBridge;
     private final UserServiceClient userServiceClient;
+    private final ProductServiceClient productServiceClient;
 
     public OrderResponse createOrder(String keycloakId) {
 
@@ -80,6 +80,33 @@ public class OrderService {
         streamBridge.send("createOrder-out-0", event);
 
         return mapToOrderResponse(savedOrder);
+    }
+
+    public OrderDetailsResponse getOrderDetails(Long orderId, String keycloakId) {
+
+        Order order = orderRepository
+                .findByIdAndKeycloakId(orderId, keycloakId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        List<ProductResponse> items = order.getItems()
+                .stream()
+                .map(item -> {
+
+                    ApiResponse<ProductResponse> response =
+                            productServiceClient.getProductDetails(item.getProductId());
+
+                    return response.getData();
+
+                })
+                .toList();
+
+        return new OrderDetailsResponse(
+                order.getId(),
+                order.getTotalAmount(),
+                order.getStatus(),
+                items,
+                order.getCreatedAt()
+        );
     }
 
     private List<OrderItemDTO> mapToOrderItemDTOs(List<OrderItem> items) {

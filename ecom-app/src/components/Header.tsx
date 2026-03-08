@@ -38,6 +38,13 @@ export default function Header() {
 
   const userId = keycloak?.tokenParsed?.sub;
 
+  const roles =
+    keycloak?.tokenParsed?.resource_access?.[
+      process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID!
+    ]?.roles ?? [];
+
+  const isAdmin = roles.includes("ADMIN");
+
   useNotificationSocket(userId ?? "");
 
   const { data } = useGetCartQuery(undefined, {
@@ -52,14 +59,19 @@ export default function Header() {
   if (isLoading) return null;
 
   return (
-    <AppBar position="static">
+    <AppBar
+      position="static"
+      sx={{
+        backgroundColor: "primary.main",
+      }}
+    >
       <Toolbar>
         <Typography
           variant="h6"
           sx={{ flexGrow: 1, cursor: "pointer" }}
           onClick={() => router.push("/")}
         >
-          Microservice Project
+          Nimbus Commerce
         </Typography>
 
         {!isAuthenticated ? (
@@ -101,13 +113,64 @@ export default function Header() {
                 vertical: "top",
                 horizontal: "right",
               }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    width: 260,
+                  },
+                },
+              }}
             >
-              <MenuItem disabled>
-                {keycloak?.tokenParsed?.preferred_username}
+              {/* User Info */}
+              <Box px={2} py={1.5}>
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <AccountCircleIcon sx={{ fontSize: 36 }} />
+
+                  <Box>
+                    <Typography fontWeight={600}>
+                      {keycloak?.tokenParsed?.preferred_username}
+                    </Typography>
+
+                    <Typography variant="body2" color="text.secondary">
+                      {keycloak?.tokenParsed?.email}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Role */}
+                {isAdmin && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      display: "inline-block",
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 1,
+                      bgcolor: "secondary.main",
+                      color: "white",
+                    }}
+                  >
+                    ADMIN
+                  </Typography>
+                )}
+              </Box>
+
+              <Divider />
+
+              {/* Orders */}
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  router.push("/orders");
+                }}
+              >
+                My Orders
               </MenuItem>
 
               <Divider />
 
+              {/* Logout */}
               <MenuItem
                 onClick={() => {
                   handleMenuClose();

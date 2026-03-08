@@ -1,21 +1,6 @@
 import { ApiResponse } from "@/types/product/productTypes";
 import { baseApi } from "../baseApi";
-
-export interface OrderItem {
-  id: number;
-  productId: string;
-  quantity: number;
-  price: number;
-  subTotal: number;
-}
-
-export interface OrderResponse {
-  id: number;
-  totalAmount: number;
-  status: string;
-  items: OrderItem[];
-  createdAt: string;
-}
+import { OrderDetailsResponse, OrderResponse } from "@/types/order/orderTypes";
 
 export const orderApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,9 +9,13 @@ export const orderApi = baseApi.injectEndpoints({
         url: "/api/orders",
         method: "POST",
       }),
-      invalidatesTags: ["Cart", "Notifications"],
+      invalidatesTags: ["Cart", "Notifications", "Products"],
+    }),
+
+    getOrderDetails: builder.query<ApiResponse<OrderDetailsResponse>, number>({
+      query: (orderId) => `/api/orders/${orderId}`,
     }),
   }),
 });
 
-export const { useCreateOrderMutation } = orderApi;
+export const { useCreateOrderMutation, useGetOrderDetailsQuery } = orderApi;

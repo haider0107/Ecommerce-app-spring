@@ -1,6 +1,12 @@
 "use client";
 
-import { Container, Typography, Grid } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Grid,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import { useGetProductsQuery } from "@/services/productService";
 import ProductCard from "./ProductCard";
 import { useAddToCartMutation } from "@/services/cartService";
@@ -14,8 +20,21 @@ export default function ProductsContent() {
 
   const [loadingProductId, setLoadingProductId] = useState<number | null>(null);
 
-  if (isLoading) return <p>Loading products...</p>;
-  if (error) return <p>Error loading products</p>;
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={6}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography textAlign="center" mt={4}>
+        Error loading products
+      </Typography>
+    );
+  }
 
   const products = data?.data ?? [];
 
@@ -38,13 +57,13 @@ export default function ProductsContent() {
 
   return (
     <Container sx={{ mt: 5 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
+      <Typography variant="h4" fontWeight={600} mb={4}>
         Products
       </Typography>
 
       <Grid container spacing={3}>
         {products.map((product) => (
-          <Grid key={product.id}>
+          <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <ProductCard
               product={product}
               onAddToCart={handleAddToCart}

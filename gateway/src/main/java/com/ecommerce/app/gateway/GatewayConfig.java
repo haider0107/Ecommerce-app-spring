@@ -57,7 +57,10 @@ public class GatewayConfig {
                         .uri("lb://NOTIFICATION-SERVICE"))
                 .route("notification-ws", r -> r
                         .path("/ws/**")
-                        .uri("lb:ws://NOTIFICATION-SERVICE"))
+                        .filters(f -> f.dedupeResponseHeader(
+                                "Access-Control-Allow-Origin Access-Control-Allow-Credentials",
+                                "RETAIN_UNIQUE"))
+                        .uri("lb://NOTIFICATION-SERVICE"))
                 .route("eureka-server", r -> r
                         .path("/eureka/main")
                         .filters(f -> f.rewritePath("/eureka/main", "/"))

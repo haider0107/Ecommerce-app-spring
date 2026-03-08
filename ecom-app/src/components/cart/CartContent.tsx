@@ -21,9 +21,9 @@ export default function CartContent() {
 
   const handleCheckout = async () => {
     try {
-      const res = await createOrder().unwrap();
+      await createOrder().unwrap();
 
-      toast.success(res.message || "Order created successfully");
+      // toast.success(res.message || "Order created successfully");
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error));
     }

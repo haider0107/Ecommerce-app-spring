@@ -18,12 +18,14 @@ export default function useNotificationSocket(userId: string) {
     const stompClient = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
+      // debug: (msg) => console.log(msg),
     });
 
     stompClient.onConnect = () => {
       stompClient.subscribe(`/topic/notifications/${userId}`, (message) => {
         const notification = JSON.parse(message.body);
 
+        console.log(notification);
         toast.success(notification.message);
 
         dispatch(
