@@ -12,7 +12,6 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getKeycloak } from "@/lib/keycloak";
 import {
@@ -23,7 +22,19 @@ import {
 import toast from "react-hot-toast";
 import { getApiErrorMessage } from "@/utils/apiError";
 
-export default function NotificationBell() {
+interface Props {
+  active: boolean;
+  onOpen: (event: React.MouseEvent<HTMLElement>) => void;
+  onClose: () => void;
+  anchorEl: HTMLElement | null;
+}
+
+export default function NotificationBell({
+  active,
+  onOpen,
+  onClose,
+  anchorEl,
+}: Props) {
   const router = useRouter();
 
   const keycloak = getKeycloak();
@@ -38,13 +49,12 @@ export default function NotificationBell() {
 
   const unreadCount = data.filter((n) => !n.read).length;
 
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
 
   const handleNotificationClick = async (id: number, orderId: number) => {
     try {
       await markNotificationRead(id).unwrap();
-      setAnchorEl(null);
+      // setAnchorEl(null);
       router.push(`/orders/${orderId}`);
     } catch (err) {
       toast.error(getApiErrorMessage(err));
@@ -63,7 +73,13 @@ export default function NotificationBell() {
 
   return (
     <>
-      <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <IconButton
+        onClick={onOpen}
+        sx={{
+          bgcolor: active ? "rgba(255,255,255,0.2)" : "transparent",
+          borderRadius: 1,
+        }}
+      >
         <Badge badgeContent={unreadCount} color="error">
           <NotificationsIcon sx={{ color: "white" }} />
         </Badge>
@@ -72,7 +88,7 @@ export default function NotificationBell() {
       <Menu
         anchorEl={anchorEl}
         open={open}
-        onClose={() => setAnchorEl(null)}
+        onClose={onClose}
         PaperProps={{
           sx: {
             width: 340,

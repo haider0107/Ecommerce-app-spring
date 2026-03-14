@@ -1,4 +1,4 @@
-import { Product } from "@/types/product/productTypes";
+import { ProductResponse } from "@/types/product/productTypes";
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ export default function ProductCard({
   onAddToCart,
   addToCartLoading,
 }: {
-  product: Product;
+  product: ProductResponse;
   onAddToCart: (id: number) => void;
   addToCartLoading: boolean;
 }) {

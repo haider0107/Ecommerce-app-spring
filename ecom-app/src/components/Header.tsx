@@ -15,7 +15,7 @@ import {
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, MouseEvent, useMemo } from "react";
 import { useGetCartQuery } from "@/services/cartService";
 import useNotificationSocket from "@/hooks/useNotificationSocket";
@@ -24,9 +24,15 @@ import NotificationBell from "./notification/NotificationBell";
 export default function Header() {
   const { isAuthenticated, login, logout, isLoading, keycloak } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const [notificationAnchor, setNotificationAnchor] =
+    useState<HTMLElement | null>(null);
+
+  const notificationOpen = Boolean(notificationAnchor);
 
   const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -34,6 +40,14 @@ export default function Header() {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleNotificationOpen = (event: MouseEvent<HTMLElement>) => {
+    setNotificationAnchor(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchor(null);
   };
 
   const userId = keycloak?.tokenParsed?.sub;
@@ -44,6 +58,7 @@ export default function Header() {
     ]?.roles ?? [];
 
   const isAdmin = roles.includes("ADMIN");
+  const isActive = (path: string) => pathname.startsWith(path);
 
   useNotificationSocket(userId ?? "");
 
@@ -80,12 +95,37 @@ export default function Header() {
           </Button>
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <div>
-              <NotificationBell />
-            </div>
+            <Button
+              color="inherit"
+              onClick={() => router.push("/products")}
+              sx={{
+                fontWeight: isActive("/products") ? 700 : 400,
+                borderBottom: isActive("/products")
+                  ? "2px solid white"
+                  : "none",
+                borderRadius: 0,
+              }}
+            >
+              Products
+            </Button>
+
+            <NotificationBell
+              active={notificationOpen}
+              anchorEl={notificationAnchor}
+              onOpen={handleNotificationOpen}
+              onClose={handleNotificationClose}
+            />
 
             {/* Cart Icon */}
-            <IconButton color="inherit" onClick={() => router.push("/cart")}>
+            <IconButton
+              color="inherit"
+              onClick={() => router.push("/cart")}
+              sx={{
+                bgcolor: isActive("/cart")
+                  ? "rgba(255,255,255,0.2)"
+                  : "transparent",
+              }}
+            >
               <Badge
                 badgeContent={cartCount}
                 color="error"
@@ -157,6 +197,17 @@ export default function Header() {
               </Box>
 
               <Divider />
+
+              {isAdmin && (
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    router.push("/admin/products");
+                  }}
+                >
+                  Admin Panel
+                </MenuItem>
+              )}
 
               {/* Orders */}
               <MenuItem
